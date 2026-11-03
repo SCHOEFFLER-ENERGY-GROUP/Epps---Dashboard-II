@@ -2384,6 +2384,15 @@ const STATUS_COLORS = {
 };
 function statusColor(name){ return STATUS_COLORS[name] || '#4c8dff'; }
 
+/* Map status overrides (MAP_STATUS_OVERRIDES in data.js): tract ID -> status the dashboard map shows,
+   in place of the GIS layer's Mail_Status, until the GIS layer is updated. */
+const MAP_OVERRIDES = (typeof MAP_STATUS_OVERRIDES !== 'undefined' && MAP_STATUS_OVERRIDES) ? MAP_STATUS_OVERRIDES : {};
+function parcelStatus(props){
+  if(!props) return undefined;
+  const id = props[ARCGIS_TRACT_FIELD];
+  return (id != null && MAP_OVERRIDES[String(id)]) || props[ARCGIS_STATUS_FIELD];
+}
+
 const fmt = (n, dec=1) => n.toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec});
 const fmtInt = (n) => n.toLocaleString('en-US');
 
@@ -3862,7 +3871,7 @@ async function initLeafletMap(){
       url: ARCGIS_SERVICE_URL,
       token: token,
       style: (feature) => {
-        const status = feature.properties[ARCGIS_STATUS_FIELD];
+        const status = parcelStatus(feature.properties);
         return { color: '#000', weight: 0.6, fillColor: statusColor(status) || '#888', fillOpacity: 0.75 };
       }
     }).addTo(leafletMap);
@@ -3909,7 +3918,16 @@ async function initLeafletMap(){
 
 function currentLeafletWhere(){
   const parts = [];
-  if(selected !== 'ALL') parts.push(`${ARCGIS_STATUS_FIELD} = '${selected}'`);
+  if(selected !== 'ALL'){
+    // honour MAP_STATUS_OVERRIDES in the legend filter as well as in the colours
+    const q = t => `'${String(t).replace(/'/g,"''")}'`;
+    const ovIn  = Object.keys(MAP_OVERRIDES).filter(t => MAP_OVERRIDES[t] === selected);
+    const ovOut = Object.keys(MAP_OVERRIDES).filter(t => MAP_OVERRIDES[t] !== selected);
+    let w = `${ARCGIS_STATUS_FIELD} = '${selected}'`;
+    if(ovOut.length) w = `(${w} AND ${ARCGIS_TRACT_FIELD} NOT IN (${ovOut.map(q).join(',')}))`;
+    if(ovIn.length)  w = `(${w} OR ${ARCGIS_TRACT_FIELD} IN (${ovIn.map(q).join(',')}))`;
+    parts.push(w);
+  }
   // Overview's broker / parish filters narrow the map to those tracts
   const ids = (typeof ovFilteredTractIds === 'function') ? ovFilteredTractIds() : null;
   if(ids){
@@ -4400,7 +4418,7 @@ function fmtVal(v){
 function buildTractPopup(tractId, props){
   props = props || {};
   const owners = (typeof eppsLineList !== 'undefined') ? eppsLineList.filter(r => String(r.tractId) === String(tractId)) : [];
-  const status = props[ARCGIS_STATUS_FIELD] || (owners[0] && owners[0].trStatus) || '—';
+  const status = parcelStatus(props) || (owners[0] && owners[0].trStatus) || '—';
   const acres = props.calc_acreage != null ? props.calc_acreage : (owners[0] && owners[0].gross);
 
   const summary = [
@@ -4495,7 +4513,7 @@ function drawSelection(fc){
   const grp = L.featureGroup();
   L.geoJSON(fc, { pane, interactive:false, style: { color:'#0b0f17', weight:9, opacity:.8, fill:false } }).addTo(grp);
   L.geoJSON(fc, { pane, interactive:false, style: (f) => ({ color:'#00e5ff', weight:4, opacity:1, className:'sel-tract-line',
-    fillColor: statusColor(f.properties && f.properties[ARCGIS_STATUS_FIELD]) || '#888', fillOpacity:.85 }) }).addTo(grp);
+    fillColor: statusColor(parcelStatus(f.properties)) || '#888', fillOpacity:.85 }) }).addTo(grp);
   return grp;
 }
 /* Outlines every tract of a landowner (map search → landowner with several tracts). */
