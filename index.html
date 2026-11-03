@@ -3471,12 +3471,29 @@ tractTableInstances.forEach(instance => {
 /* ---------------- Landowner Movement ---------------- */
 
 ;
-const newLandowners = [
-
-];;
-const droppedLandowners = [
-
-];;
+/* New / dropped landowners: worked out each week from the last two landownerSnapshots in data.js,
+   matched on ASSOCIATEID (aid) so renames are not counted as new or dropped. */
+const mvSnapPair = (() => {
+  const snaps = (typeof landownerSnapshots !== 'undefined') ? landownerSnapshots : {};
+  const cur = history[history.length-1] && history[history.length-1].date;
+  const prev = history[history.length-2] && history[history.length-2].date;
+  return (snaps[cur] && snaps[prev]) ? { cur: snaps[cur], prev: snaps[prev] } : null;
+})();
+const mvKey = o => o.aid ?? o.name;
+const mvTitle = s => String(s || '').toLowerCase().replace(/(^|[\s(\-"/.])([a-z])/g, (m, p, c) => p + c.toUpperCase())
+  .replace(/\b(Llc|Inc|Ii|Iii|Iv|Jr|Sr)\b/g, w => ({Llc:'LLC',Inc:'Inc',Ii:'II',Iii:'III',Iv:'IV',Jr:'Jr',Sr:'Sr'})[w]);
+const newLandowners = mvSnapPair ? (() => {
+  const before = new Set(mvSnapPair.prev.map(mvKey));
+  return mvSnapPair.cur.filter(o => !before.has(mvKey(o)))
+    .map(o => ({ name: mvTitle(o.name), status: o.status, acres: o.acres || 0 }))
+    .sort((a,b) => b.acres - a.acres || a.name.localeCompare(b.name));
+})() : [];
+const droppedLandowners = mvSnapPair ? (() => {
+  const after = new Set(mvSnapPair.cur.map(mvKey));
+  return mvSnapPair.prev.filter(o => !after.has(mvKey(o)))
+    .map(o => ({ name: mvTitle(o.name), status: o.status, acres: o.acres || 0 }))
+    .sort((a,b) => b.acres - a.acres || a.name.localeCompare(b.name));
+})() : [];
 
 document.getElementById('movementHeader').textContent =
   `Landowner Movement — ${history[history.length-2].date} → ${history[history.length-1].date}`;
