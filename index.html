@@ -4842,8 +4842,14 @@ function renderOverview(){
   // ---- acquired by week (single series line) ----
   const tr = document.getElementById('ovTrend');
   const W = Math.max(200, tr.clientWidth || 320), H = Math.max(100, tr.clientHeight || 150);
-  const pad = { l:10, r:14, t:22, b:22 };
   const pts = history.map((h,i) => ({ d:h.date, v:h.acres.ACQUIRED||0, lo:h.landowners.ACQUIRED||0 }));
+  /* Week labels run on a 45° diagonal, one per week. Measure the widest label first so the plot
+     leaves room for them below and to the left. */
+  const LBL_ANG = 45, SIN = Math.sin(LBL_ANG*Math.PI/180), LBL_H = 10, LBL_GAP = 3;
+  const longest = pts.reduce((a, p) => p.d.length > a.length ? p.d : a, '');
+  tr.innerHTML = `<svg><text class="lbl">${longest}</text></svg>`;
+  const lw = tr.querySelector('text').getComputedTextLength() || longest.length * 6.5;
+  const pad = { l: Math.max(10, Math.ceil(lw*SIN) + 2), r:14, t:22, b: Math.ceil(lw*SIN + LBL_H) + 8 };
   const vmax = Math.max(1, ...pts.map(p=>p.v)) * 1.12;
   const X = i => pad.l + (W-pad.l-pad.r) * (pts.length>1 ? i/(pts.length-1) : .5);
   const Y = v => pad.t + (H-pad.t-pad.b) * (1 - v/vmax);
@@ -4860,25 +4866,20 @@ function renderOverview(){
           ${(i===0||i===pts.length-1||i===currentWeekIdx) ? `<text class="val" x="${X(i).toFixed(1)}" y="${(Y(p.v)-9).toFixed(1)}" text-anchor="${i===0?'start':i===pts.length-1?'end':'middle'}">${ovFmt(p.v,0)}</text>` : ''}
           </g>`).join('')}
     </svg>`;
-  /* Week labels: measure the widest one, then label every step-th week counting back from the
-     latest, with step just big enough that labels never touch. The first and last labels sit
-     flush with the chart edges, so a label too close to either of them is dropped. */
+  /* Label every week while the diagonal labels have room (perpendicular spacing at least one line
+     plus a small gap). When weeks get too tight, label every step-th week counting back from the
+     latest, and add the first week only if it doesn't crowd its neighbour. */
   const svg = tr.querySelector('svg'), NS = 'http://www.w3.org/2000/svg';
-  const mkLbl = (txt, x, anchor) => { const t = document.createElementNS(NS, 'text'); t.setAttribute('class', 'lbl');
-    t.setAttribute('x', x.toFixed(1)); t.setAttribute('y', H-5); t.setAttribute('text-anchor', anchor); t.textContent = txt; return t; };
-  const longest = pts.reduce((a, p) => p.d.length > a.length ? p.d : a, '');
-  const probe = svg.appendChild(mkLbl(longest, 0, 'start'));
-  const lw = probe.getComputedTextLength() || longest.length * 6.5; probe.remove();
-  const gap = 8, last = pts.length - 1;
+  const last = pts.length - 1;
   const span = last > 0 ? (W-pad.l-pad.r) / last : W;
-  const step = Math.max(1, Math.ceil((lw + gap) / span));
-  const show = new Set([0, last]);
-  for(let i = last - step; i > 0; i -= step){
-    const x = X(i);
-    if(x - lw/2 >= X(0) + lw + gap && x + lw/2 <= X(last) - lw - gap) show.add(i);
-  }
-  if(last > 0 && X(last) - X(0) < 2*lw + gap) show.delete(0);   // too narrow for both ends: keep the latest
-  show.forEach(i => svg.appendChild(mkLbl(pts[i].d, X(i), i===0 ? 'start' : i===last ? 'end' : 'middle')));
+  const step = Math.max(1, Math.ceil((LBL_H + LBL_GAP) / (span * SIN)));
+  const show = [];
+  for(let i = last; i >= 0; i -= step) show.push(i);
+  if(show[show.length-1] !== 0 && (show[show.length-1] * span) * SIN >= LBL_H + LBL_GAP) show.push(0);
+  const ly = Y(0) + 6;
+  show.forEach(i => { const t = document.createElementNS(NS, 'text'); t.setAttribute('class', 'lbl');
+    t.setAttribute('text-anchor', 'end'); t.setAttribute('transform', `translate(${X(i).toFixed(1)},${ly.toFixed(1)}) rotate(-${LBL_ANG})`);
+    t.setAttribute('dy', '0.35em'); t.textContent = pts[i].d; svg.appendChild(t); });
   ovBindTips(tr);
 }
 
