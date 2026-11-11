@@ -2322,7 +2322,7 @@
 // Retired statuses stay at the end so older weeks in history[] still display.
 const RETIRED_STATUSES = ['LEGAL','STATE LANDS'];
 const STATUS_HIERARCHY_LIST = (typeof STATUS_HIERARCHY !== 'undefined' && STATUS_HIERARCHY.length)
-  ? STATUS_HIERARCHY.slice() : ['ACQUIRED','SURVEY REQUESTED','NEGOTIATING','DELIVERED','MAILED'];
+  ? STATUS_HIERARCHY.slice() : ['ACQUIRED','SECOND OFFER LETTER','SURVEY REQUESTED','NEGOTIATING','DELIVERED','MAILED'];
 const DATA_STATUS_ORDER = STATUS_HIERARCHY_LIST.concat(RETIRED_STATUSES.filter(s => !STATUS_HIERARCHY_LIST.includes(s)));
 // currentWeekIdx points into history[] — the "current" week for every comparison on the page.
 // Starts on the latest week recorded. Index 0 (the very first week) can never be selected as
@@ -2383,6 +2383,7 @@ let leafletZoomedToTract = false; // true when the map moved because a list row 
    fallback when the layer can't be reached or doesn't define a colour for a status. */
 const STATUS_COLORS = {
   'ACQUIRED':    '#ffff73',
+  'SECOND OFFER LETTER': '#ff9f40',
   'SURVEY REQUESTED': '#ff73df',
   'NEGOTIATING': '#73b2ff',
   'DELIVERED':   '#38a800',
@@ -2758,7 +2759,7 @@ function buildTractRows(){
 
 
 const STATUS_COLOR_MAP = {
-  'ACQUIRED':'#ffff73','SURVEY REQUESTED':'#ff73df','NEGOTIATING':'#73b2ff','DELIVERED':'#38a800',
+  'ACQUIRED':'#ffff73','SECOND OFFER LETTER':'#ff9f40','SURVEY REQUESTED':'#ff73df','NEGOTIATING':'#73b2ff','DELIVERED':'#38a800',
   'MAILED':'#ffebaf','LEGAL':'#ffaa00','STATE LANDS':'#ff7f7f'
 };
 
@@ -5976,7 +5977,7 @@ initLeafletMap();
     d.notes.forEach(n=>{ if(n.o.some(i=>acq.has(i)) && !n.k.includes('acquired')) n.k = n.k.concat(['acquired']); });
     return d;
   })(NOTES_ANALYSIS);
-  const ST = ['MAILED','DELIVERED','NEGOTIATING','ACQUIRED','STATE LANDS'];
+  const ST = ['MAILED','DELIVERED','NEGOTIATING','SURVEY REQUESTED','SECOND OFFER LETTER','ACQUIRED','STATE LANDS'];
   const TN = Object.fromEntries(NA.themes.map(t=>[t.k,t]));
   const asOf = new Date(NA.asOf+'T00:00:00');
   const daysOld = d => Math.round((asOf - new Date(d+'T00:00:00'))/86400000);
