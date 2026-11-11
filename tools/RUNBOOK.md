@@ -14,7 +14,11 @@
 ## Overview PDF
 Output: `EPPS Dashboard - Overview - MM.DD.YY.pdf`, one page, 1224 x 963.75 pt. The top is the dashboard Overview tab captured at 3264 x 2170 (a 1632 x 1085 viewport at 2x). Below it is a 150 pt "Bonus Payments" panel with figures from the export's Weekly Summary tab ("EPPS - Bonus Payments" block).
 
-### Capture (needs the deployed site in Claude's built-in browser; the cloud workspace can't reach it)
+### Capture in a cloud session (default)
+`node epps_capture_overview.js overview.png` opens the live site in headless Chromium (Playwright, pre-installed in cloud sessions) at 1632x1085 and 2x, waits for the parcel layer, fits the map, hides scrollbars and writes a 3264x2170 PNG. It does steps 2-3 below for you. Run it after Vercel has deployed; check that the printed "Last updated" stamp is the new run and look at the PNG before building the PDF.
+Network access for the environment must allow `epps-dashboard-ii.vercel.app`, `maps.segland.com` (parcels), `server.arcgisonline.com` (imagery) and `unpkg.com` (Leaflet). Verified 11/11/26: 168 parcels, zoom 13.
+
+### Capture in the desktop app's built-in browser (fallback)
 1. Open https://epps-dashboard-ii.vercel.app/ in the built-in browser. Overview tab, latest week, filters on All. Confirm the "Last updated" stamp shows the new run.
 2. `resize_window` to 1632x1085, set `document.documentElement.style.overflow='hidden'` (otherwise a 15 px scrollbar gutter makes the page 1617 wide), then fit the map to the parcels:
    `let b=null; leafletParcelLayer.eachFeature(l=>{const bb=l.getBounds(); b=b?b.extend(bb):L.latLngBounds(bb.getSouthWest(),bb.getNorthEast())}); leafletMap.fitBounds(b,{padding:[4,4]})` (zoom 13). If it throws "Bounds are not valid", the parcel layer hasn't loaded yet; wait and retry.
