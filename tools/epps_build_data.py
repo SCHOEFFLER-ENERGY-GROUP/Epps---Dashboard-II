@@ -82,7 +82,7 @@ for row in iws.iter_rows(min_row=2):
     dc=row[col['Delivery Confirmation']]
     IOL.append({'tractId':v('TractID'),'landowner':up(v('Landowner')),'address':up(v('Address')),'city':up(v('City')),'state':up(v('State')),'zip':str(v('Zip')).strip() if v('Zip') is not None else '',
       'county':up(v('TractCounty')),'mailedDate':md.strftime('%Y-%m-%d') if isinstance(md,datetime.datetime) else up(md),
-      'deliveryConfirmation':dc.value or '','deliveryUrl':dc.hyperlink.target if dc.hyperlink else '','broker':up(v('Broker')),
+      'trackingNumber':str(v('Tracking Number') or '').strip() if 'Tracking Number' in col else '','deliveryConfirmation':dc.value or '','deliveryUrl':dc.hyperlink.target if dc.hyperlink else '','broker':up(v('Broker')),
       'interest':num(v('Interest'),6),'acres':num(v('Acres')),'netAcres':num(v('Net Acres')),'netFootage':num(v('Net Footage')),'netRods':num(v('Net Rods')),
       'pipeCost':num(v('Pipe Cost (500/rod)')),'iwWellCount':int(num(v('IW Well Count'))),'iwWellCost':num(v('IW Well Cost (1000/well)')),
       'obsWellCount':int(num(v('OBS/DIS Well Count'))),'obsWellCost':num(v('OBS/DIS Well Cost (500/well)')),'rectifierSite':'Y' if str(v('Rectifier Site (Y/N)') or '0').strip() not in ('0','N','') else 'N',

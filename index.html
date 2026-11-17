@@ -1809,7 +1809,7 @@
   <div class="section-head">
     <div>
       <h2>Landowner Table</h2>
-      <p>All 251 tracts as of Sep 30, 2026 — one row per tract, searchable by landowner or tract ID, filterable by status</p>
+      <p>All 251 tracts as of Sep 30, 2026 — one row per tract, searchable by landowner, tract ID or tracking number, filterable by status</p>
     </div>
   </div>
 
@@ -2082,7 +2082,7 @@
     <div>
       <div class="eyebrow">EPPS · Line List</div>
       <h2>Line List table</h2>
-      <p>All 251 owner-tract rows from the Mapper Export's Line List tab (Sep 30, 2026) — searchable by landowner or tract ID, filterable by tract status</p>
+      <p>All 251 owner-tract rows from the Mapper Export's Line List tab (Sep 30, 2026) — searchable by landowner, tract ID or tracking number, filterable by tract status</p>
     </div>
   </div>
 
@@ -2135,7 +2135,7 @@
     <div>
       <div class="eyebrow">IOL · Tracking Sheet</div>
       <h2>IOL Tracking</h2>
-      <p>All 266 tracts from ETC - EPPS - Line List - Master.xlsx — a cost/acquisition tracking model, searchable by landowner or tract ID, filterable by status</p>
+      <p>All 266 tracts from ETC - EPPS - Line List - Master.xlsx — a cost/acquisition tracking model, searchable by landowner, tract ID or tracking number, filterable by status</p>
     </div>
   </div>
 
@@ -2143,7 +2143,7 @@
     <div class="lo-filter-row" id="iolPillRow"></div>
     <div class="lo-controls">
       <div class="lo-search">
-        <input type="text" id="iolSearchInput" placeholder="Search landowner or tract…">
+        <input type="text" id="iolSearchInput" placeholder="Search landowner, tract or tracking #…">
       </div>
       <div class="lo-count" id="iolCount">3 tracts</div>
       <div class="lo-export-group">
@@ -2162,6 +2162,7 @@
             <th data-sort="zip">Zip<span class="arrow"></span></th>
             <th data-sort="county">County<span class="arrow"></span></th>
             <th data-sort="status">Status<span class="arrow"></span></th>
+            <th data-sort="trackingNumber">Tracking Number<span class="arrow"></span></th>
             <th data-sort="deliveryConfirmation">Delivery Confirmation<span class="arrow"></span></th>
             <th data-sort="mailedDate">Merge/Mailed Date<span class="arrow"></span></th>
             <th data-sort="interest">Interest<span class="arrow"></span></th>
@@ -3128,7 +3129,7 @@ function renderIolTable(){
   }
   if(iolSearchTerm.trim()){
     const term = iolSearchTerm.trim().toLowerCase();
-    rows = rows.filter(r => r.landowner.toLowerCase().includes(term) || String(r.tractId).toLowerCase().includes(term));
+    rows = rows.filter(r => r.landowner.toLowerCase().includes(term) || String(r.tractId).toLowerCase().includes(term) || String(r.trackingNumber || '').toLowerCase().includes(term));
   }
 
   rows = rows.slice().sort((a,b)=>{
@@ -3164,6 +3165,7 @@ function renderIolTable(){
         <td>${r.zip}</td>
         <td>${r.county}</td>
         <td><span class="lo-status-chip" style="background:${statusColor(r.status)}">${r.status}</span></td>
+        <td style="white-space:nowrap;">${r.trackingNumber || '<span style="color:var(--text-lo);">—</span>'}</td>
         <td>${iolDeliveryCell(r)}</td>
         <td>${iolFormatMailedDate(r.mailedDate)}</td>
         <td>${r.interest != null ? r.interest.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:6}) : '—'}</td>
@@ -3222,6 +3224,7 @@ async function exportIolToXlsx(){
       { header: 'Zip',                        key: 'zip',             width: 10 },
       { header: 'County',                     key: 'county',          width: 12 },
       { header: 'Status',                     key: 'status',          width: 16 },
+      { header: 'Tracking Number',            key: 'trackingNumber',  width: 26 },
       { header: 'Delivery Confirmation',      key: 'deliveryConfirmation', width: 20 },
       { header: 'Merge/Mailed Date',          key: 'mailedDate',      width: 18 },
       { header: 'Interest',                   key: 'interest',        width: 11 },
