@@ -16,6 +16,15 @@ rj=list(sheet(lambda t:t=='Rob_Join').iter_rows(values_only=True))
 ci=rj[0].index('NEW_STATUS')
 hier=[v for v in sorted([r[ci] for r in rj[1:] if r[ci]],key=lambda s:int(s.split('-')[0]))]
 HIER=[s.split('-',1)[1] for s in hier]
+# 11/24/26: Rob_Join started ranking an umbrella status, COMMITTED, while Raw Data rows (and the export's
+# Summary / Weekly Summary tabs) still use SECOND OFFER LETTER and SURVEY REQUESTED. Put those two in
+# COMMITTED's place, and drop COMMITTED itself while no row uses it.
+UMBRELLA={'COMMITTED':['SECOND OFFER LETTER','SURVEY REQUESTED']}
+_used={r[MS] for r in rows[1:] if r[0] for r in [dict(zip(H,r))]}
+for u,subs in UMBRELLA.items():
+    if u in HIER:
+        i=HIER.index(u); add=[s for s in subs if s in _used and s not in HIER]
+        HIER[i:i+1]=([u] if u in _used else [])+add
 RANK={s:i for i,s in enumerate(reversed(HIER))}  # MAILED=0 ... ACQUIRED=max
 # history
 ac=collections.defaultdict(float); lo=collections.defaultdict(set); allids=set()
