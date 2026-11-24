@@ -9,6 +9,7 @@
 
 ## Statuses
 - Order comes from Rob_Join `NEW_STATUS` (as of 11/11/26: ACQUIRED, SECOND OFFER LETTER, SURVEY REQUESTED, NEGOTIATING, DELIVERED, MAILED).
+- Since 11/24/26 Rob_Join ranks an umbrella status, COMMITTED (ACQUIRED, COMMITTED, NEGOTIATING, DELIVERED, MAILED), but rows still use SECOND OFFER LETTER and SURVEY REQUESTED. Confirmed with the user 11/24/26: keep those two as separate statuses in COMMITTED's place; don't merge them. `epps_build_data.py` does this (`UMBRELLA`), and only shows COMMITTED if a row actually uses it.
 - A new status also goes into `index.html`: `STATUS_COLORS` and `STATUS_COLOR_MAP` (fallback colours; the live map's GIS symbology overrides them), the fallback list next to `STATUS_HIERARCHY_LIST`, and the Notes Analysis `const ST = [...]`. SECOND OFFER LETTER was added 11/11/26 with #ff9f40.
 
 ## Overview PDF
