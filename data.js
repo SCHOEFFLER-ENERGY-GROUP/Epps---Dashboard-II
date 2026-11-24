@@ -6,7 +6,7 @@
    ===================================================================== */
 
 // Shown in the "Last updated" stamp at the top of the page.
-const EPPS_LAST_UPDATED = '11/24/2026 · 7:59 AM CST';
+const EPPS_LAST_UPDATED = '11/24/2026 · 8:52 AM CST';
 
 // Status hierarchy from the export's Rob_Join tab (most to least advanced).
 // index.html reads this for status order; update it each week from Rob_Join.
@@ -795,7 +795,7 @@ const transitions = [
 const brokerage = [
   { name:'ETP - Epps Title', prev:71081.13, curr:0, total:71081.13, budget:62000, color:'var(--series-1)' },
   { name:'ETP - Epps GIS', prev:58736.7, curr:0, total:58736.7, budget:50000, color:'var(--series-2)' },
-  { name:'ETP - Epps Leasing', prev:182280.32, curr:0, total:182280.32, budget:455000, color:'var(--series-3)' },
+  { name:'ETP - Epps Leasing', prev:182280.32, curr:560, total:182840.32, budget:455000, color:'var(--series-3)' },
 ];
 
 // ---- bonus ----
